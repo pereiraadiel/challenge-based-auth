@@ -7,6 +7,7 @@ import {
 } from '../../contracts/repositories/usersRepository.contract';
 import { UserEntity } from '../../entities/user.entity';
 import { getRandomSetOfWords } from '../../utils/words/word.util';
+import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
 
 const usersRepositoryMock = createMock<UsersRepositoryContract>();
 
@@ -47,7 +48,7 @@ describe('Authenticate User Service', () => {
 
       await expect(
         service.handleSignIn(user.username, user.authSet[0]),
-      ).rejects.toThrow();
+      ).rejects.toBeInstanceOf(UnauthorizedException);
     });
 
     it('should returns an error if secret was wrong', async () => {
@@ -55,7 +56,7 @@ describe('Authenticate User Service', () => {
 
       await expect(
         service.handleSignIn(user.username, user.id),
-      ).rejects.toThrow();
+      ).rejects.toBeInstanceOf(UnauthorizedException);
     });
   });
 });

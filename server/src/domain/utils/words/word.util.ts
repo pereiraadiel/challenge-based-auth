@@ -1,7 +1,5 @@
 import { words } from './set.json';
 
-console.warn(words);
-
 export const getRandomSetOfWords = (length = 5) => {
   const set: typeof words = [];
 

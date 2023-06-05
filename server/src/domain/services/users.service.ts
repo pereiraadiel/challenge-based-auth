@@ -5,20 +5,27 @@ import {
 } from '../contracts/repositories/usersRepository.contract';
 import { AuthStrategy } from '../enums/authStrategy.enum';
 import { getRandomSetOfWords } from '../utils/words/word.util';
+import { AlreadyExistsException } from '../exceptions/alreadyExists.exception';
+import { NotFoundException } from '../exceptions/notFound.exception';
+import { Service } from './service';
 
 @Injectable()
-export class UsersService {
+export class UsersService extends Service {
+  SERVICE_NAME = 'USERS_SERVICE';
+
   constructor(
     @Inject(USERS_REPOSITORY)
     private readonly usersRepository: UsersRepositoryContract,
-  ) {}
+  ) {
+    super();
+  }
 
   async createOne(username: string, authStrategy: AuthStrategy) {
     try {
       const alreadyExists = await this.usersRepository.findOne(username);
 
       if (alreadyExists) {
-        throw new Error('409');
+        throw new AlreadyExistsException(username);
       }
 
       const user = await this.usersRepository.createOne({
@@ -30,7 +37,7 @@ export class UsersService {
       // precisa retornar o jwt
       return user;
     } catch (error) {
-      throw error;
+      this.catchException(error, username);
     }
   }
 
@@ -38,9 +45,13 @@ export class UsersService {
     try {
       const user = await this.usersRepository.findOne(username);
 
+      if (!user) {
+        throw new NotFoundException(username);
+      }
+
       return user;
     } catch (error) {
-      throw error;
+      this.catchException(error, username);
     }
   }
 
@@ -49,7 +60,7 @@ export class UsersService {
       const exists = await this.usersRepository.findOne(username);
 
       if (!exists) {
-        throw new Error('404');
+        throw new NotFoundException(username);
       }
 
       return await this.usersRepository.updateOne({
@@ -58,7 +69,7 @@ export class UsersService {
         authSet: getRandomSetOfWords(5).map(({ id }) => id),
       });
     } catch (error) {
-      throw error;
+      this.catchException(error, username);
     }
   }
 }
