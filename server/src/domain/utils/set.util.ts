@@ -1,4 +1,5 @@
 import { AuthStrategies, AuthStrategy } from './../enums/authStrategy.enum';
+import { genRandomId } from './id.util';
 import { getRandomSetOfImages } from './images/image.util';
 import { getRandomSetOfNumbers } from './numbers/number.util';
 import { getRandomSetOfWords } from './words/word.util';
@@ -17,4 +18,29 @@ export const getRandomSet = (
   const strategy = strategies[authStrategy];
 
   return strategy(length, userSet);
+};
+
+export const groupAuthSet = (
+  authSet: ReturnType<typeof getRandomSet>,
+  itemsByGroup = 2,
+) => {
+  itemsByGroup = itemsByGroup < 1 ? 2 : itemsByGroup;
+
+  const groupSet: (typeof authSet)[] = [];
+
+  for (let i = 0, k = -1; i < authSet.length; i++) {
+    if (i % itemsByGroup === 0) {
+      k++;
+      groupSet[k] = [];
+    }
+
+    groupSet[k].push(authSet[i] as any);
+  }
+
+  return groupSet.map((item) => {
+    return {
+      id: genRandomId(),
+      item,
+    };
+  });
 };

@@ -8,6 +8,7 @@ export abstract class Service {
     exception: any,
     context: typeof Exception.prototype.context = null,
   ) {
+    console.error(exception);
     if (exception instanceof Exception) {
       if (typeof context === 'string') {
         exception.context = {

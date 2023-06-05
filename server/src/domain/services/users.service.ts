@@ -4,11 +4,11 @@ import {
   UsersRepositoryContract,
 } from '../contracts/repositories/usersRepository.contract';
 import { AuthStrategy } from '../enums/authStrategy.enum';
-import { getRandomSetOfWords } from '../utils/words/word.util';
 import { AlreadyExistsException } from '../exceptions/alreadyExists.exception';
 import { NotFoundException } from '../exceptions/notFound.exception';
 import { Service } from './service';
 import { getRandomSet } from '../utils/set.util';
+import { userEntityToResponseUser } from '../mappers/users.mapper';
 
 @Injectable()
 export class UsersService extends Service {
@@ -32,7 +32,7 @@ export class UsersService extends Service {
       const user = await this.usersRepository.createOne({
         username,
         authStrategy,
-        authSet: getRandomSet(2, authStrategy, []).map((item) => {
+        authSet: getRandomSet(3, authStrategy, []).map((item) => {
           if (typeof item === 'number') return String(item);
           if (typeof item.id === 'string') return item.id;
         }),
@@ -53,7 +53,7 @@ export class UsersService extends Service {
         throw new NotFoundException(username);
       }
 
-      return user;
+      return userEntityToResponseUser(user);
     } catch (error) {
       this.catchException(error, username);
     }
