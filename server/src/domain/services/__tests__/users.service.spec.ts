@@ -6,16 +6,20 @@ import {
   UsersRepositoryContract,
 } from '../../contracts/repositories/usersRepository.contract';
 import { UserEntity } from '../../entities/user.entity';
-import { getRandomSetOfWords } from '../../utils/words/word.util';
 import { AlreadyExistsException } from '../../exceptions/alreadyExists.exception';
 import { NotFoundException } from '../../exceptions/notFound.exception';
+import { getRandomSet } from '../../utils/set.util';
+import { AuthStrategies } from '../../enums/authStrategy.enum';
 
 const usersRepositoryMock = createMock<UsersRepositoryContract>();
 
 const user = new UserEntity({
   username: 'teste',
-  authSet: getRandomSetOfWords().map(({ id }) => id),
   authStrategy: 'WordSet',
+  authSet: getRandomSet(2, 'WordSet', []).map((item) => {
+    if (typeof item === 'number') return String(item);
+    if (typeof item.id === 'string') return item.id;
+  }),
 });
 
 describe('User Service', () => {
@@ -43,6 +47,18 @@ describe('User Service', () => {
       const response = await service.createOne(
         user.username,
         user.authStrategy,
+      );
+
+      expect(response.id).toBe(user.id);
+    });
+
+    it('should create one with mathematical strategy', async () => {
+      jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValue(null);
+      jest.spyOn(usersRepositoryMock, 'createOne').mockResolvedValue(user);
+
+      const response = await service.createOne(
+        user.username,
+        AuthStrategies.Math,
       );
 
       expect(response.id).toBe(user.id);
@@ -83,6 +99,18 @@ describe('User Service', () => {
       const response = await service.updateOne(
         user.username,
         user.authStrategy,
+      );
+
+      expect(response.id).toBe(user.id);
+    });
+
+    it('should update one with mathematical strategy', async () => {
+      jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValue(user);
+      jest.spyOn(usersRepositoryMock, 'updateOne').mockResolvedValue(user);
+
+      const response = await service.updateOne(
+        user.username,
+        AuthStrategies.Math,
       );
 
       expect(response.id).toBe(user.id);

@@ -6,15 +6,19 @@ import {
   UsersRepositoryContract,
 } from '../../contracts/repositories/usersRepository.contract';
 import { UserEntity } from '../../entities/user.entity';
-import { getRandomSetOfWords } from '../../utils/words/word.util';
 import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
+import { getRandomSet } from '../../utils/set.util';
+import { NotFoundException } from '../../exceptions/notFound.exception';
 
 const usersRepositoryMock = createMock<UsersRepositoryContract>();
 
 const user = new UserEntity({
   username: 'teste',
-  authStrategy: 'WordSet',
-  authSet: getRandomSetOfWords(2).map(({ id }) => id),
+  authStrategy: 'Mathematical',
+  authSet: getRandomSet(2, 'Mathematical', []).map((item) => {
+    if (typeof item === 'number') return String(item);
+    if (typeof item.id === 'string') return item.id;
+  }),
 });
 
 describe('Authenticate User Service', () => {
@@ -57,6 +61,24 @@ describe('Authenticate User Service', () => {
       await expect(
         service.handleSignIn(user.username, user.id),
       ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+  });
+
+  describe('Get Set to Sign In', () => {
+    it('should get a set to sign in', async () => {
+      jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValue(user);
+
+      const response = await service.getSetToSignIn(user.username);
+
+      expect(response).toBeDefined();
+    });
+
+    it('should returns an error if not found user', async () => {
+      jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValue(null);
+
+      await expect(
+        service.getSetToSignIn(user.username),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 });

@@ -8,6 +8,7 @@ import { getRandomSetOfWords } from '../utils/words/word.util';
 import { AlreadyExistsException } from '../exceptions/alreadyExists.exception';
 import { NotFoundException } from '../exceptions/notFound.exception';
 import { Service } from './service';
+import { getRandomSet } from '../utils/set.util';
 
 @Injectable()
 export class UsersService extends Service {
@@ -31,7 +32,10 @@ export class UsersService extends Service {
       const user = await this.usersRepository.createOne({
         username,
         authStrategy,
-        authSet: getRandomSetOfWords(5).map(({ id }) => id),
+        authSet: getRandomSet(2, authStrategy, []).map((item) => {
+          if (typeof item === 'number') return String(item);
+          if (typeof item.id === 'string') return item.id;
+        }),
       });
 
       // precisa retornar o jwt
@@ -66,7 +70,10 @@ export class UsersService extends Service {
       return await this.usersRepository.updateOne({
         username,
         authStrategy,
-        authSet: getRandomSetOfWords(5).map(({ id }) => id),
+        authSet: getRandomSet(2, authStrategy, []).map((item) => {
+          if (typeof item === 'number') return String(item);
+          if (typeof item.id === 'string') return item.id;
+        }),
       });
     } catch (error) {
       this.catchException(error, username);
