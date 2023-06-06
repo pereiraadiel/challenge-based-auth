@@ -9,14 +9,19 @@ import { UserEntity } from '../../entities/user.entity';
 import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
 import { getRandomSet } from '../../utils/set.util';
 import { NotFoundException } from '../../exceptions/notFound.exception';
+import {
+  AUTH_REPOSITORY,
+  AuthRepositoryContract,
+} from '../../contracts/repositories/authRepository.contract';
 
 const usersRepositoryMock = createMock<UsersRepositoryContract>();
+const authRepositoryMock = createMock<AuthRepositoryContract>();
 
 const user = new UserEntity({
   username: 'teste',
-  authStrategy: 'Mathematical',
-  authSet: getRandomSet(2, 'Mathematical', []).map((item) => {
-    if (typeof item === 'number') return String(item);
+  authStrategy: 'WordSet',
+  authSet: getRandomSet(2, 'WordSet', []).map((item) => {
+    if (typeof item === 'number') return item;
     if (typeof item.id === 'string') return item.id;
   }),
 });
@@ -32,6 +37,10 @@ describe('Authenticate User Service', () => {
           provide: USERS_REPOSITORY,
           useValue: usersRepositoryMock,
         },
+        {
+          provide: AUTH_REPOSITORY,
+          useValue: authRepositoryMock,
+        },
       ],
     }).compile();
 
@@ -40,6 +49,7 @@ describe('Authenticate User Service', () => {
 
   describe('Authenticate User', () => {
     it('should authenticate one user', async () => {
+      jest.spyOn(authRepositoryMock, 'get').mockResolvedValue(user.username);
       jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValue(user);
 
       const result = await service.handleSignIn(user.username, user.authSet[0]);
@@ -48,6 +58,7 @@ describe('Authenticate User Service', () => {
     });
 
     it('should returns an error if not found user', async () => {
+      jest.spyOn(authRepositoryMock, 'get').mockResolvedValue(user.username);
       jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValue(null);
 
       await expect(
@@ -56,6 +67,7 @@ describe('Authenticate User Service', () => {
     });
 
     it('should returns an error if secret was wrong', async () => {
+      jest.spyOn(authRepositoryMock, 'get').mockResolvedValue(null);
       jest.spyOn(usersRepositoryMock, 'findOne').mockResolvedValue(user);
 
       await expect(

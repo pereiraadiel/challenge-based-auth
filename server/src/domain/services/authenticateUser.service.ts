@@ -35,8 +35,6 @@ export class AuthenticateUserService extends Service {
       const authUsername = await this.authRepository.get(username, secret);
       const user = await this.usersRepository.findOne(username);
 
-      console.warn(authUsername, user);
-
       if (!user || !authUsername) {
         throw new UnauthorizedException(username);
       }
@@ -90,8 +88,6 @@ export class AuthenticateUserService extends Service {
       // gerar a senha do usuário com base nos ids dos sets que
       // contenham pelo menos um dos elementos do set de auth do usuário
       const password = base64encode(setGroupUserAuthSetIds.join(''));
-
-      console.warn(password);
 
       await this.authRepository.register(user.username, password);
 

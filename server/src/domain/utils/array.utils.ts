@@ -1,19 +1,12 @@
 export const shuffleArray = (array: any[]) => {
-  let currentIndex: number = array.length;
-  let randomIndex: number;
+  const shuffled = [...array];
 
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
 
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
+    // trocar os elementos i e j de posição no array
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  return array;
+  return shuffled;
 };
