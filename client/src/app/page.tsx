@@ -1,57 +1,96 @@
 "use client"
-import styles from './page.module.css'
-import { Header } from './components/header'
+import styled from 'styled-components'
 import { Button, FilledButton } from './components/button'
 import { LabledSelect } from './components/select'
-import { LabledInput } from './components/input'
 import { SetContainer } from './components/setContainer'
-import { SetGroup } from './components/setGroup'
+import Link from 'next/link'
+import useLocalStorage from '../hooks/useLocalStorage'
+import { useEffect, useState } from 'react'
+import { User } from './contracts/user.contract'
+import { useRouter } from 'next/navigation'
 
-const setMock = [
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-  {},
-]
-
-export default function Home() {
+const AuthenticatedPage = () => {
   return (
-    <main className={styles.main}>
-     <Header/>
-      {/* <div> */}
-        {/* <FilledButton>Try to Authenticate</FilledButton>
-        <Button>Register an Account</Button>
+    <>
+      <div>
+        <h2>Hello, Username!</h2>
+        <p>Welcome to your home page</p>
+      </div>
 
-        <LabledInput label='Username' placeholder='Enter your username'/>
-        <LabledSelect label='Authentication Strategy' placeholder='Select an Option'>
-          <option>Select a strategy</option>
-          <option>Numeric Set</option>
+      <div>
+        <p>That is your set of secrets words:</p>
+        <SetContainer>
+          <p>Okay</p>
+          <p>Beleza</p>
+          <p>Legal</p>
+        </SetContainer>
+
+        <Spacer/>
+
+        <LabledSelect label="Change strategy?">
+          <option>Select a new strategy</option>
           <option>Word Set</option>
           <option>Emoji Set</option>
-        </LabledSelect> */}
-        <SetGroup>
-          {setMock.map((item, index) => {
-            const selected = index % 2 === 0
-            return <>
-              <SetContainer className={selected ? 'selected' : ''}>
-                <p>primeira</p>
-                <p>segunda</p>
-                <p>terceira</p>
-              </SetContainer>
-            </>
-          })}
-        </SetGroup>
-        <FilledButton>Authenticate</FilledButton>
-      {/* </div> */}
-     <p> {'<'}Developed by <a href='https://adiel.dev' target='_blank' rel='noreferrer noopener'>Adiel Pereira</a> {'/>'}</p>
-    </main>
+          <option>Number Set</option>
+        </LabledSelect>
+
+        <FilledButton>Change your strategy</FilledButton>
+
+        <Link href='/login' onClick={() => {console.warn('captured')}}>Sign Out</Link>
+      </div>
+    </>
+  )
+}
+
+const PublicPage = () => {
+  const router = useRouter();
+  const handleNavigateToLogin = () => {
+    router.push('/login');
+  };
+  const handleNavigateToRegister = () => {
+    router.push('/register');
+  };
+
+  return (
+    <>
+      <div>
+        <p>
+          This is a proof-of-concept on authentication using emojis/words/number sets,
+          where the user needs to select from multiple sets of emojis/words/numbers, 
+          those that contain at least one element from the user set
+        </p>
+      </div>
+      <div>
+        <FilledButton onClick={handleNavigateToLogin}>Try to Authenticate</FilledButton>
+        <Button onClick={handleNavigateToRegister}>Register an Account</Button>
+      </div>
+    </>
+  )
+}
+
+const Spacer = styled.div`
+  margin: 4rem 0;
+`;
+
+
+export default function HomePage() {
+  const [storedUser, setStoredUser] = useLocalStorage<string>("@user", "");
+  const [user, setUser] = useState<User>()
+  
+  useEffect(() => {
+    if(!storedUser) return
+    setUser(JSON.parse(storedUser))
+  }, [storedUser])
+  
+  if(user && user.token)  return (
+    <>
+      <AuthenticatedPage/>
+    </>
+  )
+
+  return (
+    <>
+      <PublicPage/>
+    </>
   )
 }

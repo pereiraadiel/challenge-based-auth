@@ -7,7 +7,7 @@ export const Input = styled.input`
   height: 4rem;
   width: 20rem;
   background-color: transparent;
-  border: 1px solid var(--text-primary);
+  border: 2px solid var(--text-primary);
   border-radius: 1rem;
   padding: 1.5rem 1rem;
   font-family: inherit;
