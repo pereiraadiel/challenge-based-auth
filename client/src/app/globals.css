@@ -1,15 +1,25 @@
 :root {
-  --border-radius: 12px;
+  --border-radius: 0.8rem;
+  --bg-primary: #151921;
+  --bg-secondary: #252931;
+  --text-primary: #f3f3f3;
+  --text-button: #000000;
+  --accent: #66FF99;
+  --accent-hover: #66FF9990;
 }
 
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-size: 16px;
+  color: var(--text-primary);
 }
 
 html,
 body {
   max-width: 100vw;
+  font-size: 16px;
+  color: var(--text-primary);
   overflow-x: hidden;
 }
