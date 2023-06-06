@@ -33,7 +33,7 @@ export class UsersService extends Service {
       const user = await this.usersRepository.createOne({
         username,
         authStrategy,
-        authSet: getRandomSet(genRandomInt(2, 4), authStrategy, []).map(
+        authSet: getRandomSet(genRandomInt(3, 5), authStrategy, []).map(
           (item) => {
             if (typeof item === 'number') return String(item);
             if (typeof item.id === 'string') return item.id;
@@ -73,9 +73,9 @@ export class UsersService extends Service {
       return await this.usersRepository.updateOne({
         username,
         authStrategy,
-        authSet: getRandomSet(genRandomInt(2, 4), authStrategy, []).map(
+        authSet: getRandomSet(genRandomInt(3, 5), authStrategy, []).map(
           (item) => {
-            if (typeof item === 'number') return String(item);
+            if (!Number.isNaN(Number(item))) return item;
             if (typeof item.id === 'string') return item.id;
           },
         ),

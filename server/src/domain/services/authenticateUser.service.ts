@@ -61,7 +61,7 @@ export class AuthenticateUserService extends Service {
       );
 
       const randomSet = getRandomSet(
-        12 - userSessionSetLength,
+        18 - userSessionSetLength,
         user.authStrategy,
         user.authSet,
       );
@@ -79,7 +79,10 @@ export class AuthenticateUserService extends Service {
         .filter(({ item }) => {
           let isInUserSet = false;
           item.map((element) => {
-            isInUserSet = isInUserSet || userSessionSet.includes(element.id);
+            !Number.isNaN(Number(element))
+              ? (isInUserSet = isInUserSet || userSessionSet.includes(element))
+              : (isInUserSet =
+                  isInUserSet || userSessionSet.includes(element.id));
           });
           return isInUserSet;
         })

@@ -9,5 +9,5 @@ export const getRandomSetOfNumbers = (length = 5, userSet: string[]) => {
     }
   }
 
-  return set;
+  return set.map((item) => item.toString().padStart(2, '0'));
 };
