@@ -7,13 +7,14 @@ export class AuthCacheRepository implements AuthRepositoryContract {
   constructor(private readonly database: RedisProvider) {}
 
   async register(username: string, oneTimeId: string): Promise<void> {
-    await this.database.setValue(`auth:${oneTimeId}`, username, 60 * 5); // 1 min expiração
+    await this.database.setValue(`auth:${username}`, oneTimeId, 60 * 5); // 1 min expiração
   }
 
-  async get(oneTimeId: string): Promise<string> {
-    const authValue = await this.database.getRawValue(`auth:${oneTimeId}`);
+  async get(username: string, oneTimeId: string): Promise<string> {
+    const authValue = await this.database.getRawValue(`auth:${username}`);
+    await this.database.deleteValue(`auth:${username}`);
 
-    await this.database.deleteValue(`auth:${oneTimeId}`);
+    if (authValue !== oneTimeId) return null;
 
     return authValue;
   }

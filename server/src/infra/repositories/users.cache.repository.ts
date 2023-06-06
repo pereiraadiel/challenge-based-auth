@@ -38,6 +38,7 @@ export class UserCacheRepository implements UsersRepositoryContract {
         ...dao,
         updatedAt: new Date(),
       }),
+      60 * 30, // 30 min
     )) as any;
   }
 }

@@ -9,6 +9,7 @@ import { NotFoundException } from '../exceptions/notFound.exception';
 import { Service } from './service';
 import { getRandomSet } from '../utils/set.util';
 import { userEntityToResponseUser } from '../mappers/users.mapper';
+import { genRandomInt } from '../utils/number.util';
 
 @Injectable()
 export class UsersService extends Service {
@@ -32,10 +33,12 @@ export class UsersService extends Service {
       const user = await this.usersRepository.createOne({
         username,
         authStrategy,
-        authSet: getRandomSet(3, authStrategy, []).map((item) => {
-          if (typeof item === 'number') return String(item);
-          if (typeof item.id === 'string') return item.id;
-        }),
+        authSet: getRandomSet(genRandomInt(2, 4), authStrategy, []).map(
+          (item) => {
+            if (typeof item === 'number') return String(item);
+            if (typeof item.id === 'string') return item.id;
+          },
+        ),
       });
 
       // precisa retornar o jwt
@@ -70,10 +73,12 @@ export class UsersService extends Service {
       return await this.usersRepository.updateOne({
         username,
         authStrategy,
-        authSet: getRandomSet(2, authStrategy, []).map((item) => {
-          if (typeof item === 'number') return String(item);
-          if (typeof item.id === 'string') return item.id;
-        }),
+        authSet: getRandomSet(genRandomInt(2, 4), authStrategy, []).map(
+          (item) => {
+            if (typeof item === 'number') return String(item);
+            if (typeof item.id === 'string') return item.id;
+          },
+        ),
       });
     } catch (error) {
       this.catchException(error, username);

@@ -26,18 +26,19 @@ export const groupAuthSet = (
 ) => {
   itemsByGroup = itemsByGroup < 1 ? 2 : itemsByGroup;
 
-  const groupSet: (typeof authSet)[] = [];
+  const matriz = [];
+  let row = [];
 
-  for (let i = 0, k = -1; i < authSet.length; i++) {
-    if (i % itemsByGroup === 0) {
-      k++;
-      groupSet[k] = [];
+  for (let i = 0; i < authSet.length; i++) {
+    row.push(authSet[i]);
+
+    if (row.length === itemsByGroup || i === authSet.length - 1) {
+      matriz.push(row);
+      row = [];
     }
-
-    groupSet[k].push(authSet[i] as any);
   }
 
-  return groupSet.map((item) => {
+  return matriz.map((item) => {
     return {
       id: genRandomId(),
       item,

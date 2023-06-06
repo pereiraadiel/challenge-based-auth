@@ -14,6 +14,7 @@ import {
   AuthRepositoryContract,
 } from '../contracts/repositories/authRepository.contract';
 import { base64encode } from '../utils/id.util';
+import { genRandomInt } from '../utils/number.util';
 
 @Injectable()
 export class AuthenticateUserService extends Service {
@@ -31,10 +32,12 @@ export class AuthenticateUserService extends Service {
 
   async handleSignIn(username: string, secret: string) {
     try {
-      const authUsername = await this.authRepository.get(secret);
+      const authUsername = await this.authRepository.get(username, secret);
       const user = await this.usersRepository.findOne(username);
 
-      if (!user || !authUsername || !(authUsername === username)) {
+      console.warn(authUsername, user);
+
+      if (!user || !authUsername) {
         throw new UnauthorizedException(username);
       }
 
@@ -53,7 +56,7 @@ export class AuthenticateUserService extends Service {
         throw new NotFoundException(username);
       }
 
-      const userSessionSetLength = Math.random() * user.authSet.length + 1;
+      const userSessionSetLength = genRandomInt(2, user.authSet.length);
       const userSessionSet = shuffleArray(user.authSet).slice(
         0,
         userSessionSetLength,
@@ -62,18 +65,19 @@ export class AuthenticateUserService extends Service {
       const randomSet = getRandomSet(
         12 - userSessionSetLength,
         user.authStrategy,
-        userSessionSet,
+        user.authSet,
       );
+
       const set = [
-        ...userSetToAuthSet(user.authSet, user.authStrategy),
+        ...userSetToAuthSet(userSessionSet, user.authStrategy),
         ...randomSet,
       ];
 
-      const items = groupAuthSet(shuffleArray(set), 3);
+      const setGroup = groupAuthSet(shuffleArray(set), 3);
 
-      // obter os ids de todos os indices do array de items onde pelo menos
-      // um item corresponde a um dos elementos do set do usuário
-      const itemsUserAuthSetIds = items
+      // obter os ids de todos os indices do array de setGroup onde pelo menos
+      // um item corresponde a um dos elementos do set de auth do usuário
+      const setGroupUserAuthSetIds = setGroup
         .filter(({ item }) => {
           let isInUserSet = false;
           item.map((element) => {
@@ -83,16 +87,17 @@ export class AuthenticateUserService extends Service {
         })
         .map((item) => item.id);
 
-      console.warn(itemsUserAuthSetIds, itemsUserAuthSetIds.join(''));
+      // gerar a senha do usuário com base nos ids dos sets que
+      // contenham pelo menos um dos elementos do set de auth do usuário
+      const password = base64encode(setGroupUserAuthSetIds.join(''));
 
-      await this.authRepository.register(
-        user.username,
-        base64encode(itemsUserAuthSetIds.join('')),
-      );
+      console.warn(password);
+
+      await this.authRepository.register(user.username, password);
 
       return {
         authStrategy: user.authStrategy,
-        set: items,
+        set: setGroup,
       };
     } catch (error) {
       this.catchException(error, username);
