@@ -1,6 +1,6 @@
+import { UnauthorizedException } from './../exceptions/unauthorized.exception';
 import { TokenRepositoryContract } from '../contracts/repositories/tokenRepository.contract';
 import { UserEntity } from '../entities/user.entity';
-import { NotFoundException } from '../exceptions/notFound.exception';
 import { base64decode, base64encode, genRandomId } from './id.util';
 
 export const genToken = (user: UserEntity) => {
@@ -13,7 +13,7 @@ export const validateToken = async (
 ) => {
   try {
     const storedToken = await tokenRepository.get(token);
-    if (!storedToken) throw new NotFoundException(token);
+    if (!storedToken) throw new UnauthorizedException(token);
 
     const [username, sessionId] = base64decode(token).split('|');
 
@@ -22,6 +22,6 @@ export const validateToken = async (
       sessionId,
     };
   } catch (error) {
-    throw new NotFoundException(token);
+    throw new UnauthorizedException(token);
   }
 };

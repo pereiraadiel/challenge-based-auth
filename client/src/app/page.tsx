@@ -5,42 +5,94 @@ import { LabledSelect } from './components/select'
 import { SetContainer } from './components/setContainer'
 import Link from 'next/link'
 import useLocalStorage from '../hooks/useLocalStorage'
-import { useEffect, useState } from 'react'
 import { User } from './contracts/user.contract'
 import { useRouter } from 'next/navigation'
+import { api } from '../utils/api.util'
+import { AuthStrategies, AuthStrategy } from '../enums/authStrategy.enum'
+
+import { useState, useEffect, useMemo } from 'react';
 
 const AuthenticatedPage = () => {
+  const [user, setUser] = useState<User>();
+  const [storedUser, setStoredUser] = useLocalStorage<string>("@user", "");
+  const [storedToken, setStoredToken] = useLocalStorage<string>("@token", "");
+  const [strategy, setStrategy] = useState<AuthStrategy>(AuthStrategies.WordSet)
+  
+
+  const handleUpdateUser = async () => {
+    const data = await api.updateUser(storedToken, 'username', strategy)
+    setStoredToken(data)
+    setUser(undefined)
+    fetchUser()
+  }
+
+  const fetchUser = async () => {
+    const data = await api.getUser(storedToken, 'username');
+    setUser(data);
+    setStoredUser(JSON.stringify(data))
+  };
+
+  useEffect(() => {
+    if (!user) {
+      fetchUser();
+    }
+  }, [user]);
+
+  const loading = useMemo(() => {
+    return !user;
+  }, [user]);
+
+  if (!user || loading) {
+    return <p>loading...</p>;
+  }
+
   return (
     <>
       <div>
-        <h2>Hello, Username!</h2>
+        <h2>Hello, {user.username}!</h2>
         <p>Welcome to your home page</p>
       </div>
 
       <div>
-        <p>That is your set of secrets words:</p>
+        <p>That is your set of secrets...<br/>you will need it  to authenticate</p>
         <SetContainer>
-          <p>Okay</p>
-          <p>Beleza</p>
-          <p>Legal</p>
+          {user.authSet.map((item: any) => {
+            console.warn(item)
+            if(typeof item === 'string') {
+              return (
+                <p key={item}>{item}</p>
+              )
+            }
+            else if(item?.word !== undefined) {
+              return (
+                <p key={item.id}>{item.word}</p>
+              )
+            }
+            return (
+              <img key={item.id} src={item.link} alt={item.id}/>
+            )
+          })}
         </SetContainer>
 
         <Spacer/>
 
-        <LabledSelect label="Change strategy?">
-          <option>Select a new strategy</option>
-          <option>Word Set</option>
-          <option>Emoji Set</option>
-          <option>Number Set</option>
+        <LabledSelect label="Change strategy?" onChange={e => setStrategy(e.target.value as AuthStrategy)}>
+          <option value='default'>Select a new strategy</option>
+          <option value={AuthStrategies.WordSet}>Word Set</option>
+          <option value={AuthStrategies.ImageSet}>Emoji Set</option>
+          <option value={AuthStrategies.Math}>Number Set</option>
         </LabledSelect>
 
-        <FilledButton>Change your strategy</FilledButton>
+        <FilledButton onClick={handleUpdateUser}>Change your strategy</FilledButton>
 
-        <Link href='/login' onClick={() => {console.warn('captured')}}>Sign Out</Link>
+        <Link href='#' onClick={() => {api.logout(); setUser({
+          username: ''
+        } as any)}}>Sign Out</Link>
       </div>
     </>
   )
 }
+
 
 const PublicPage = () => {
   const router = useRouter();
@@ -75,18 +127,17 @@ const Spacer = styled.div`
 
 export default function HomePage() {
   const [storedUser, setStoredUser] = useLocalStorage<string>("@user", "");
+  const [storedToken, setStoredToken] = useLocalStorage<string>("@token", "");
   const [user, setUser] = useState<User>()
   
-  useEffect(() => {
-    if(!storedUser) return
-    setUser(JSON.parse(storedUser))
-  }, [storedUser])
-  
-  if(user && user.token)  return (
+
+  if(storedToken)  return (
     <>
       <AuthenticatedPage/>
     </>
   )
+
+  console.warn(storedToken)
 
   return (
     <>
