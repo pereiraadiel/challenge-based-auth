@@ -10,6 +10,11 @@ import { Service } from './service';
 import { getRandomSet } from '../utils/set.util';
 import { userEntityToResponseUser } from '../mappers/users.mapper';
 import { genRandomInt } from '../utils/number.util';
+import {
+  TOKEN_REPOSITORY,
+  TokenRepositoryContract,
+} from '../contracts/repositories/tokenRepository.contract';
+import { genToken, validateToken } from '../utils/token.util';
 
 @Injectable()
 export class UsersService extends Service {
@@ -18,6 +23,9 @@ export class UsersService extends Service {
   constructor(
     @Inject(USERS_REPOSITORY)
     private readonly usersRepository: UsersRepositoryContract,
+
+    @Inject(TOKEN_REPOSITORY)
+    private readonly tokenRepository: TokenRepositoryContract,
   ) {
     super();
   }
@@ -41,15 +49,17 @@ export class UsersService extends Service {
         ),
       });
 
-      // precisa retornar o jwt
-      return user;
+      const token = genToken(user);
+      await this.tokenRepository.register(token);
+      return token;
     } catch (error) {
       this.catchException(error, username);
     }
   }
 
-  async findOne(username: string) {
+  async findOne(token: string) {
     try {
+      const { username } = await validateToken(token, this.tokenRepository);
       const user = await this.usersRepository.findOne(username);
 
       if (!user) {
@@ -58,19 +68,20 @@ export class UsersService extends Service {
 
       return userEntityToResponseUser(user);
     } catch (error) {
-      this.catchException(error, username);
+      this.catchException(error, null);
     }
   }
 
-  async updateOne(username: string, authStrategy: AuthStrategy) {
+  async updateOne(token: string, authStrategy: AuthStrategy) {
     try {
+      const { username } = await validateToken(token, this.tokenRepository);
       const exists = await this.usersRepository.findOne(username);
 
       if (!exists) {
         throw new NotFoundException(username);
       }
 
-      return await this.usersRepository.updateOne({
+      const user = await this.usersRepository.updateOne({
         username,
         authStrategy,
         authSet: getRandomSet(genRandomInt(3, 5), authStrategy, []).map(
@@ -80,8 +91,12 @@ export class UsersService extends Service {
           },
         ),
       });
+
+      const newToken = genToken(user);
+      await this.tokenRepository.register(newToken);
+      return newToken;
     } catch (error) {
-      this.catchException(error, username);
+      this.catchException(error, token);
     }
   }
 }

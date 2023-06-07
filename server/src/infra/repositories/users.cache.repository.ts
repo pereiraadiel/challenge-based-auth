@@ -10,7 +10,7 @@ export class UserCacheRepository implements UsersRepositoryContract {
   constructor(private readonly database: RedisProvider) {}
 
   async createOne(dao: CreateOneUserDAO): Promise<UserEntity> {
-    return (await this.database.setValue(
+    (await this.database.setValue(
       `user:${dao.username}`,
       JSON.stringify({
         ...dao,
@@ -18,6 +18,8 @@ export class UserCacheRepository implements UsersRepositoryContract {
       }),
       60 * 30, // 30 min
     )) as any;
+
+    return await this.database.getParsedValue(`user:${dao.username}`);
   }
 
   async findOne(username: string): Promise<UserEntity> {
@@ -31,7 +33,7 @@ export class UserCacheRepository implements UsersRepositoryContract {
 
     if (!userStored) return null;
 
-    return (await this.database.setValue(
+    await this.database.setValue(
       `user:${dao.username}`,
       JSON.stringify({
         ...userStored,
@@ -39,6 +41,8 @@ export class UserCacheRepository implements UsersRepositoryContract {
         updatedAt: new Date(),
       }),
       60 * 30, // 30 min
-    )) as any;
+    );
+
+    return await this.database.getParsedValue(`user:${dao.username}`);
   }
 }

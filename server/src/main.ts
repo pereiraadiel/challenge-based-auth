@@ -6,13 +6,19 @@ import {
 import { AppModule } from './infra/modules/app.module';
 import { ExceptionHandler } from './infra/handlers/exception.handler';
 import { ValidationPipe } from '@nestjs/common';
+import * as cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
   );
-
+  app.use(
+    cors({
+      allowedHeaders: '*',
+      origin: '*',
+    }),
+  );
   app.useGlobalFilters(new ExceptionHandler());
   app.useGlobalPipes(new ValidationPipe());
 

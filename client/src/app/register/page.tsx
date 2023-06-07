@@ -7,6 +7,11 @@ import { LabledSelect } from "../components/select"
 
 export default function RegisterPage() {
   const router = useRouter()
+
+  const handleNavigateToHome = () => {
+    router.push('/');
+  };
+
   return (
     <>
       <div>
@@ -17,7 +22,7 @@ export default function RegisterPage() {
           <option>Emoji Set</option>
           <option>Number Set</option>
         </LabledSelect>
-        <FilledButton>Register Account</FilledButton>
+        <FilledButton onClick={handleNavigateToHome}>Register Account</FilledButton>
       </div>
       <div>
         <p>

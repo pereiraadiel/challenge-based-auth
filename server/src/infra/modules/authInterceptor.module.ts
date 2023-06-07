@@ -1,29 +1,25 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AuthInterceptor } from '../interceptors/auth.interceptor';
 import { USERS_REPOSITORY } from '../../domain/contracts/repositories/usersRepository.contract';
 import { UserCacheRepository } from '../repositories/users.cache.repository';
-import { AuthenticateUserService } from '../../domain/services/authenticateUser.service';
-import { AuthController } from '../controllers/auth.controller';
 import { TOKEN_REPOSITORY } from '../../domain/contracts/repositories/tokenRepository.contract';
 import { TokenCacheRepository } from '../repositories/token.cache.repository';
-import { AUTH_REPOSITORY } from '../../domain/contracts/repositories/authRepository.contract';
-import { AuthCacheRepository } from '../repositories/auth.cache.repository';
 
 @Module({
-  controllers: [AuthController],
   providers: [
-    AuthenticateUserService,
     {
       provide: USERS_REPOSITORY,
       useClass: UserCacheRepository,
     },
     {
-      provide: AUTH_REPOSITORY,
-      useClass: AuthCacheRepository,
-    },
-    {
       provide: TOKEN_REPOSITORY,
       useClass: TokenCacheRepository,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuthInterceptor,
+    },
   ],
 })
-export class AuthModule {}
+export class AuthInterceptorModule {}

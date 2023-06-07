@@ -15,6 +15,11 @@ import {
 } from '../contracts/repositories/authRepository.contract';
 import { base64encode } from '../utils/id.util';
 import { genRandomInt } from '../utils/number.util';
+import {
+  TOKEN_REPOSITORY,
+  TokenRepositoryContract,
+} from '../contracts/repositories/tokenRepository.contract';
+import { genToken } from '../utils/token.util';
 
 @Injectable()
 export class AuthenticateUserService extends Service {
@@ -26,6 +31,9 @@ export class AuthenticateUserService extends Service {
 
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: AuthRepositoryContract,
+
+    @Inject(TOKEN_REPOSITORY)
+    private readonly tokenRepository: TokenRepositoryContract,
   ) {
     super();
   }
@@ -39,8 +47,9 @@ export class AuthenticateUserService extends Service {
         throw new UnauthorizedException(username);
       }
 
-      // precisa retornar o jwt
-      return user;
+      const token = genToken(user);
+      await this.tokenRepository.register(token);
+      return token;
     } catch (error) {
       this.catchException(error, username);
     }
