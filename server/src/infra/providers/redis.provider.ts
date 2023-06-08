@@ -1,10 +1,13 @@
 import { createClient } from 'redis';
+import { RedisConstants } from '../../constants/redis.constant';
 
 export class RedisProvider {
-  private client = createClient();
+  private client: ReturnType<typeof createClient>;
 
   constructor() {
-    this.client = createClient();
+    this.client = createClient({
+      url: RedisConstants.url,
+    });
     this.connect();
   }
 
@@ -28,5 +31,9 @@ export class RedisProvider {
 
   async deleteValue(key: string) {
     return await this.client.del(key);
+  }
+
+  async disconnect() {
+    await this.client.disconnect();
   }
 }

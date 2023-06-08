@@ -1,9 +1,10 @@
 import { User, UserSet } from "../app/contracts/user.contract";
+import { ApiConstants } from "../constants/api.constant";
 import { AuthStrategy } from "../enums/authStrategy.enum";
 import Axios from "axios";
 
 const axios = Axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: ApiConstants.url,
 });
 
 const handleLogout = () => {
