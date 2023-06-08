@@ -13,6 +13,7 @@ import { AuthStrategies, AuthStrategy } from '../enums/authStrategy.enum'
 import { useState, useEffect, useMemo } from 'react';
 
 const AuthenticatedPage = () => {
+  const router = useRouter()
   const [user, setUser] = useState<User>();
   const [storedUser, setStoredUser] = useLocalStorage<string>("@user", "");
   const [storedToken, setStoredToken] = useLocalStorage<string>("@token", "");
@@ -24,6 +25,12 @@ const AuthenticatedPage = () => {
     setStoredToken(data)
     setUser(undefined)
     fetchUser()
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("@user");
+    localStorage.removeItem("@token");
+    router.push('/')
   }
 
   const fetchUser = async () => {
@@ -42,7 +49,7 @@ const AuthenticatedPage = () => {
     return !user;
   }, [user]);
 
-  if (!user || loading) {
+  if (!user) {
     return <p>loading...</p>;
   }
 
@@ -77,7 +84,7 @@ const AuthenticatedPage = () => {
         <Spacer/>
 
         <LabledSelect label="Change strategy?" onChange={e => setStrategy(e.target.value as AuthStrategy)}>
-          <option value='default'>Select a new strategy</option>
+          <option value={AuthStrategies.WordSet}>Select a new strategy</option>
           <option value={AuthStrategies.WordSet}>Word Set</option>
           <option value={AuthStrategies.ImageSet}>Emoji Set</option>
           <option value={AuthStrategies.Math}>Number Set</option>
@@ -85,9 +92,7 @@ const AuthenticatedPage = () => {
 
         <FilledButton onClick={handleUpdateUser}>Change your strategy</FilledButton>
 
-        <Link href='#' onClick={() => {api.logout(); setUser({
-          username: ''
-        } as any)}}>Sign Out</Link>
+        <Link href='#' onClick={handleLogout}>Sign Out</Link>
       </div>
     </>
   )
@@ -126,18 +131,13 @@ const Spacer = styled.div`
 
 
 export default function HomePage() {
-  const [storedUser, setStoredUser] = useLocalStorage<string>("@user", "");
   const [storedToken, setStoredToken] = useLocalStorage<string>("@token", "");
-  const [user, setUser] = useState<User>()
-  
 
   if(storedToken)  return (
     <>
       <AuthenticatedPage/>
     </>
   )
-
-  console.warn(storedToken)
 
   return (
     <>

@@ -70,7 +70,7 @@ export class AuthenticateUserService extends Service {
       );
 
       const randomSet = getRandomSet(
-        18 - userSessionSetLength,
+        27 - userSessionSetLength,
         user.authStrategy,
         user.authSet,
       );

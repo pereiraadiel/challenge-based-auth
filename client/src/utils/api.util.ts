@@ -24,7 +24,7 @@ export const api = {
       return token;
     } catch (error) {
       console.warn(error);
-      // alert("Ocorreu um erro na criação do usuário");
+      throw error;
     }
   },
 
@@ -92,7 +92,7 @@ export const api = {
       return token;
     } catch (error) {
       console.warn(error);
-      // alert("Ocorreu um erro na autenticação do usuário");
+      throw error;
     }
   },
 

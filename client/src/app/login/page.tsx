@@ -6,6 +6,7 @@ import { LabledInput } from "../components/input";
 import { useEffect, useState } from "react";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import { User } from "../contracts/user.contract";
+import { AuthStrategies } from "../../enums/authStrategy.enum";
 
 const LoginPageWrapper: React.FC = () => {
   const router = useRouter();
@@ -21,7 +22,9 @@ const LoginPageWrapper: React.FC = () => {
 
   useEffect(() => {
     setUser({
-      username
+      username,
+      authSet: [],
+      authStrategy: AuthStrategies.WordSet
     })
     console.warn(username)
   }, [username])

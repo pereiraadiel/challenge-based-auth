@@ -1,8 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Button, FilledButton } from "../../components/button"
-import { LabledInput } from "../../components/input"
+import { FilledButton } from "../../components/button"
 import { SetContainer } from "../../components/setContainer"
 import { SetGroup } from "../../components/setGroup"
 import useLocalStorage from "../../../hooks/useLocalStorage"
@@ -13,8 +12,10 @@ import { api } from "../../../utils/api.util"
 const ChallengePage: React.FC = () => {
   const router = useRouter();
   const [storedUser, setStoredUser] = useLocalStorage<string>("@user", "");
+  const [storedToken, setStoredToken] = useLocalStorage<string>("@token", "");
   const [user, setUser] = useState<User>()
-  const [userSet, setUserSet] = useState<UserSet>()
+  const [userAuthSet, setUserAuthSet] = useState<UserSet>()
+  const [selectedSetIds, setSelectedSetIds] = useState<string[]>([])
   
   useEffect(() => {
     if(!storedUser) router.back()
@@ -22,25 +23,54 @@ const ChallengePage: React.FC = () => {
   }, [storedUser])
   
 
-  const fetchUserSet = async () => {
-    const data = user ? await api.getAuthenticationUserSet(user?.username) : undefined;
-    setUserSet(data);
+  const fetchUserAuthSet = async () => {
+    const data =await api.getAuthenticationUserSet(user?.username as any);
+    if(!data) {
+      router.back()
+    }
+    setUserAuthSet(data);
   };
 
   useEffect(() => {
-    if (!userSet) {
-      fetchUserSet();
+    if (!userAuthSet) {
+      fetchUserAuthSet();
     }
-  }, [userSet, user]);
+  }, [userAuthSet, user]);
 
   if(!user) {
+    // router.back()
     return <></>
   }
-  
 
-  const handleNavigateToHome = () => {
-    router.push('/');
+  const handleAuthenticate = () => {
+    if(!userAuthSet) return
+    let secret = ''
+    userAuthSet.set.forEach(({ item, id}: any) => {
+      if(selectedSetIds.includes(id)) {
+        secret += id
+      }
+    })
+    if(!secret) return
+
+    secret = Buffer.from(secret).toString('base64')
+
+    api.authenticateUser(user.username, secret).then((token) => {
+      setStoredToken(token)
+      router.push('/');
+    }).catch(() => {
+      fetchUserAuthSet()
+    })
   };
+
+  const handleSelectSet = (id: string) => {
+    const oldSelection = selectedSetIds
+    const index = oldSelection.findIndex(item => item === id)
+    if(index < 0) {
+      setSelectedSetIds([...oldSelection, id])
+      return
+    }
+    setSelectedSetIds(oldSelection.filter(item => item !== id))
+  }
 
   return (
     <>
@@ -50,14 +80,11 @@ const ChallengePage: React.FC = () => {
       </div>
       <SetGroup>
         {
-          userSet?.set.map(({item, id}: any) => {
-            console.warn('set...', item)
-            console.warn(Object.keys(item))
+          userAuthSet?.set.map(({item, id}: any) => {
             return (
               <>
-                <SetContainer key={id}>
+                <SetContainer key={id} onClick={() => handleSelectSet(id)} className={selectedSetIds.includes(id) ? 'selected' : ''} >
                   {item.map((value: any) => {
-                    console.warn(value, 'value')
                     if(typeof value === 'string') {
                       return <p key={value}>{value}</p>
                     }
@@ -73,7 +100,7 @@ const ChallengePage: React.FC = () => {
         }
       </SetGroup>
       <div>
-        <FilledButton onClick={handleNavigateToHome}>Authenticate</FilledButton>
+        <FilledButton onClick={handleAuthenticate}>Authenticate</FilledButton>
       </div>
     </>
   )
